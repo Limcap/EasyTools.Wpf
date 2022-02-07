@@ -184,7 +184,7 @@ namespace Limcap.EasyTools.Wpf {
 
 
 
-		public bool? ShowDialog( MessageBoxButton buttons ) {
+		public bool? ShowDialog( MessageBoxButton buttons, bool closeOnClick = true, bool showInTaskbar = true, bool topmost = true) {
 			ButtonsPanel.Children.Clear();
 			if (buttons == MessageBoxButton.YesNo) { Yes(); No(); }
 			else if (buttons == MessageBoxButton.YesNoCancel) { Yes(); No(); Cancel(); }
@@ -196,7 +196,7 @@ namespace Limcap.EasyTools.Wpf {
 			void No() { AddButton( "Não", false ); }
 			void Cancel() { AddButton( "Cancelar", null ); }
 			void Ok() { AddButton( "Ok", true ); }
-			return (bool?)ShowDialog();
+			return (bool?)ShowDialog(closeOnClick, showInTaskbar, topmost);
 		}
 
 
@@ -213,11 +213,12 @@ namespace Limcap.EasyTools.Wpf {
 
 
 
-		public object ShowDialog( bool close = true ) {
+		public object ShowDialog( bool closeOnClick = true, bool showInTaskbar = true, bool topmost = true ) {
 			// Warning: If the Visibility of the window is Hidden, the method ShowDialog will return immediately
 			// and will not wait for user input.
-			MainWindow.ShowInTaskbar = true;
-			if (close)
+			MainWindow.ShowInTaskbar = showInTaskbar;
+			MainWindow.Topmost = topmost;
+			if (closeOnClick)
 				foreach (Button btn in ButtonsPanel.Children)
 					btn.Click += ( o, a ) => { DialogResult = btn.Tag; MainWindow.Close(); };
 			SystemSounds.Question.Play();
