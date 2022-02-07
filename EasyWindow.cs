@@ -144,8 +144,8 @@ namespace Limcap.EasyTools.Wpf {
 			MainWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
 			return this;
 		}
-		public EasyWindow SetContent( Panel contentPanel ) {
-			ContentOutline.Child = contentPanel;
+		public EasyWindow SetContent( FrameworkElement contentElement ) {
+			ContentOutline.Child = contentElement;
 			//contentPanel.FontSize( () => style.FontSize );
 			return this;
 		}
