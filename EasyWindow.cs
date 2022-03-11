@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Media;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Limcap.EasyTools.PowerSyntax;
 using Limcap.EasyTools.Wpf.DataBinding;
@@ -87,7 +88,24 @@ namespace Limcap.EasyTools.Wpf {
 					)
 				)
 			);
+			MainWindow.Loaded += ( o, a ) => {
+				if( ElementWithFocusOnStart != null ) {
+					ElementWithFocusOnStart?.Focus();
+					return;
+				}
+			};
+			//MainWindow.KeyDown += ( o, a ) => {
+			//	if ( a.Key == System.Windows.Input.Key.Enter && ButtonsPanel.Children.Count > DefaultButton)
+			//		(ButtonsPanel.Children[DefaultButton-1] as Button).Command.Execute(null);
+			//	//ReturnKeyAction?.Invoke();
+			//};
 		}
+
+
+
+
+
+
 		//public EasyWindow( Window centralizeOn, string title = "Mensagem" ) {
 		//	MainWindow = new Window() {
 		//		Title = title,
@@ -130,6 +148,9 @@ namespace Limcap.EasyTools.Wpf {
 
 
 
+
+
+
 		public EasyWindow CenterOn( int processId ) {
 			MainWindow.OnLoad( ( o, a ) => WindowUtil.Centralize( o as Window, processId ) );
 			MainWindow.WindowStartupLocation( WindowStartupLocation.Manual );
@@ -139,11 +160,23 @@ namespace Limcap.EasyTools.Wpf {
 			//);
 			return this;
 		}
+
+
+
+
+
+
 		public EasyWindow CenterOn( Window window ) {
 			MainWindow.Owner = window;
 			MainWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
 			return this;
 		}
+
+
+
+
+
+
 		public EasyWindow SetContent( FrameworkElement contentElement ) {
 			ContentOutline.Child = contentElement;
 			//contentPanel.FontSize( () => style.FontSize );
@@ -164,19 +197,60 @@ namespace Limcap.EasyTools.Wpf {
 
 
 
-		public EasyWindow AddButton( string caption, RoutedEventHandler action = null ) {
+		public EasyWindow SetFocusOnLoad( FrameworkElement control ) {
+			ElementWithFocusOnStart = control;
+			return this;
+		}
+		private FrameworkElement ElementWithFocusOnStart;
+		//public FrameworkElement FocusOnStart { get; set; }
+		//public Action ReturnKeyAction { get; set; }
+
+
+
+
+
+
+		public EasyWindow AddButton( string caption, object tag = null, Action action = null ) {
+			var button = NewButton( caption, tag );
+			button.Command = new Cmd( action );
+			ButtonsOutline.AppendChild( button );
+			return this;
+		}
+		public EasyWindow AddButton( string caption, RoutedEventHandler action ) {
 			return AddButton( caption, null, action );
 		}
-		public EasyWindow AddButton( string caption, object tag, RoutedEventHandler action = null ) {
-			ButtonsOutline.AppendChild(
-				new Button()
+		public EasyWindow AddButton( string caption, object tag, RoutedEventHandler action ) {
+			var button = NewButton( caption, tag ).OnClick( action );
+			ButtonsOutline.AppendChild(button);
+			return this;
+		}
+		private Button NewButton( string caption, object tag ) {
+			return new Button()
 				.Content( caption )
 				.Tag( tag )
 				.MarginBind( style, () => new Thickness( style.ButtonDistance, 0, 0, 0 ) )
-				.PaddingBind( style, () => style.ButtonPadding )
-				.OnClick( action )
-			);
+				.PaddingBind( style, () => style.ButtonPadding );
+		}
+
+
+
+
+
+
+		//private int defaultButton = 0;
+		public EasyWindow SetDefaultButton( int index ) {
+			if (ButtonsPanel.Children.Count > index)
+				(ButtonsPanel.Children[index] as Button).IsDefault = true;
 			return this;
+		}
+
+
+
+
+
+
+		public void Show() {
+			MainWindow?.Show();
 		}
 
 
@@ -197,15 +271,6 @@ namespace Limcap.EasyTools.Wpf {
 			void Cancel() { AddButton( "Cancelar", null ); }
 			void Ok() { AddButton( "Ok", true ); }
 			return (bool?)ShowDialog(closeOnClick, showInTaskbar, topmost);
-		}
-
-
-
-
-
-
-		public void Show() {
-			MainWindow?.Show();
 		}
 
 
@@ -243,6 +308,16 @@ namespace Limcap.EasyTools.Wpf {
 
 		public DefaultStyle style = new DefaultStyle();
 
+		#region CLASSES AUXILIARES
+		//===============================================================================================================
+		//===============================================================================================================
+		#endregion
+
+
+
+
+
+
 		public class DefaultStyle : EasyBind_Double, EasyWindowStyle {
 			public DefaultStyle() : base( 15 ) { }
 
@@ -268,6 +343,17 @@ namespace Limcap.EasyTools.Wpf {
 			dynamic ButtonMinWidth { get; }
 			dynamic ButtonPadding { get; }
 			dynamic ButtonDistance { get; }
+		}
+
+
+
+
+		private class Cmd : ICommand {
+			public Cmd(Action action) { this.action = action; }
+			private Action action;
+			public event EventHandler CanExecuteChanged;
+			public bool CanExecute( object parameter ) => true;
+			public void Execute( object parameter ) => action?.Invoke();
 		}
 	}
 }
